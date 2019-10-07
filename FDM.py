@@ -12,7 +12,7 @@ class FDM:
         T : int
             Number of topics to fit
         data : Numpy 2-d array
-            Numpy array that sums to 1 representing topic-topic co-occurence in the data.
+            Numpy array that sums to 1 representing token-token co-occurence in the data.
             Can be constructed using FDM.build_data_matrix()
         learning_rate : float, optional
             The learning rate for the Adam optimizer (default is 0.01)
