@@ -138,6 +138,7 @@ class FDM:
             local_iteration_counter += 1
             
             #update topics and weights data members
+            #TODO print loglikelihood on batch
             if local_iteration_counter%1000 == 0:
                 print ('local iteration no. {} / {}'.format(local_iteration_counter,num_iterations))
                 self._loss_arr.append(res[1])
@@ -147,8 +148,51 @@ class FDM:
         #at the end of the training we update to the latest value
         self.topics = self._tf_session.run(self.t_topics)
         self.weights = self._tf_session.run(self.t_weights)        
+    
+    
+    
+
+            
+    
+    """
+def get_assignments(T_arg,samples_unique):
+    print 'NMF ...'
+    iterations = 1000
+    a=non_negative_factorization(X=samples_unique,
+                                   H=T_arg,
+                                   max_iter=iterations,
+                                   solver='mu',
+                                   beta_loss='kullback-leibler',
+                                   init='custom',
+                                   update_H = False,
+                                   n_components=T_arg.shape[0]
+                                )
+    
+    optimal_assignments = a[0]
+    op_as = optimal_assignments
+    topics_props = np.mean(op_as,axis=0)
+    sorted_topics_idxs = np.argsort(a=topics_props)[::-1]
+    
+    return op_as, topics_props, sorted_topics_idxs
 
     
+def smoother(v,L):
+    vcs = v.cumsum()
+    return (vcs[L:] - vcs[:-L])/L
+
+    
+def get_topic_stuff(topic_table,samples_unique):
+
+    print 'Computing assignments...'
+    A,Mean,Sidsx = get_assignments(topic_table,samples_unique)
+
+    #asuming no zeros in topics 
+    print 'Computing likelihoods...'
+    lglike = (np.log(np.matmul(A,topic_table))*samples_unique).sum(axis = 1)
+    return topic_table, A, Mean,Sidsx,lglike        
+        
+    
+    """
     def print_topic(self, topicNumber, dictionary = None, nwords = 20, topic_threshold=1e-5):
         """
         Parameters
@@ -211,7 +255,7 @@ class FDM:
         with open(save_dir + '/' + model_name + 'data_matrix.pkl','wb') as pklfd:
             pkl.dump(self.data_to_fit, pklfd, -1)
             
-        
+    
         
     @staticmethod
     def load_model_params(model_name, load_dir = ''):
