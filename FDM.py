@@ -12,7 +12,7 @@ class FDM:
         T : int
             Number of topics to fit
         data : Numpy 2-d array
-            Numpy array that sums to 1 representing topic-topic co-occurence in the data.
+            Numpy array that sums to 1 representing token-token co-occurence in the data.
             Can be constructed using FDM.build_data_matrix()
         learning_rate : float, optional
             The learning rate for the Adam optimizer (default is 0.01)
@@ -53,9 +53,6 @@ class FDM:
         """
         Parameters
         ----------
-        data : Numpy 2-d array
-            Numpy array that sums to 1 representing topic-topic co-occurence in the data.
-            Can be constructed using FDM.build_data_matrix()
         num_iterations : int (optional)
             Number of SGD steps to train the model (default is 100K)
         batch_size : int (optional)
@@ -325,7 +322,7 @@ def get_topic_stuff(topic_table,samples_unique):
             A list represeting the corpus where each list corpus[i] is a list of ints representing tokens in the range {0,...,voc_size-1}
         voc_size : int 
             The number of unique tokens in the corpus
-        voc_size
+            
         Returns
         -------
         second_moment_matrix : Numpy array of shape (voc_size,voc_size)
