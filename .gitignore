@@ -1,1 +1,7 @@
 *.pyc
+__pycache__
+*pkl
+*so
+build/
+_fast_moment.c
+

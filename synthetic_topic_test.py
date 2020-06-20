@@ -1,9 +1,12 @@
-import cPickle as pkl
+import pickle as pkl
 from FDM import FDM
 import numpy as np
 
 
 import matplotlib.pylab as pl
+
+from scipy.spatial.distance import cdist 
+from scipy.optimize import linear_sum_assignment    
 
 
 if __name__ == '__main__':
@@ -32,27 +35,31 @@ if __name__ == '__main__':
     #creating second moment matrix from the synthetic corpus
     print('Building second moment matrix')
     data_matrix = FDM.build_data_matrix(synthetic_corp,voc_size)
+    #data_matrix = FDM.build_data_matrix(synthetic_corp,voc_size, method = FDM.MOMENT_COMPUTE_SPARSE_C)
     
     #creating FDM model    
-    fdm = FDM(50,data_matrix)
+    fdm = FDM(Ntopics,data_matrix,learning_rate=1e-2)
+    
     #fitting FDM model
-    fdm.fit(50000)
+    init_topics = FDM.topic_data_init(synthetic_corp, Ntopics, voc_size)
+    
+    
+    
+    fdm.fit(50000, init_topics = init_topics)
+    
     inferred_topics = fdm.get_topics()
     
-    #measuring reconstruction L1 error    
-    reconstruction_errors = np.array(
-        [np.abs( inferred_topics - gt_topics[gt_idx,:][np.newaxis,:] ).sum(axis = 1).min() for gt_idx in range(Ntopics)]
-    )
-    average_error = reconstruction_errors.mean()    
-
+    
+    
+    dist_matrix = cdist(gt_topics,inferred_topics, 'cityblock')
+    row_ind, col_ind = linear_sum_assignment(dist_matrix)
+    minimizing_inidces = col_ind[np.argsort(row_ind)]
+    
+    reconstruction_errors = dist_matrix[np.arange(Ntopics),minimizing_inidces]
+    average_error = reconstruction_errors.mean()
     print ('average reconstruction error: {:.3f}'.format(average_error) )
     
     
-    
-    minimizing_inidces = [np.argmin(np.abs( inferred_topics - gt_topics[gt_idx,:][np.newaxis,:] ).sum(axis = 1)) 
-                            for gt_idx in range(Ntopics)
-                         ]
-
     #plotting a random ground truth topic with the closest (in L1 metric) inferred topic
     pl.figure()    
     pl.plot(gt_topics[0,:],'-o', label = 'Ground Topic {}'.format(0))

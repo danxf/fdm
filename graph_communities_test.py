@@ -27,7 +27,7 @@ if  __name__ == '__main__':
         
     assert (np.array(BPG.nodes) == np.arange(1,voc_size+1)).sum() == voc_size
 
-    graph_labels = np.array([BPG.node[u]['value'] for u  in BPG.nodes ])
+    graph_labels = np.array([BPG.nodes[u]['value'] for u  in BPG.nodes ])
     
     
     """
@@ -57,7 +57,16 @@ if  __name__ == '__main__':
     Ntopics = 10
     fdm = FDM(Ntopics, adjacency)
 
-    fdm.fit(num_iterations = 10000)
+    from rate_adjuster_test import FDMRateAdjusterCB
+    raCB = FDMRateAdjusterCB(adjust_freq = 10000, adjust_factor = 3, n_trials = 3, batches_per_trial = 1000)
+    fdm.callback = raCB
+
+
+
+    fdm.fit(num_iterations = 60000)
+    
+    #fdm.fit(num_iterations = 40000, uniform_is_coef = .5)
+    
     
     res_topics,res_weights = (fdm.get_topics(), fdm.get_weights())
     

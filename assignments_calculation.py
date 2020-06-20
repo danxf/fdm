@@ -7,7 +7,7 @@ Use calculate_assignments_sparse() for large data. This will return D x T _spars
 
 
 import numpy as np
-import cPickle as pkl
+import pickle as pkl
 from FDM import FDM
 
 from sklearn.decomposition import non_negative_factorization
@@ -44,6 +44,14 @@ def calculate_assignments(topics, data, voc_size, iterations = 1000):
     
 
 
+def _csr_vappend(a,b):
+    a.data = np.hstack((a.data,b.data))
+    a.indices = np.hstack((a.indices,b.indices))
+    a.indptr = np.hstack((a.indptr,(b.indptr + a.nnz)[1:]))
+    a._shape = (a.shape[0]+b.shape[0],b.shape[1])
+    return a
+
+from time import time
 def calculate_assignments_sparse(topics, data, voc_size, iterations = 1000, threshold = 1e-4):
     """
     This function should be used when theres a lot of documents and the vocabulary size is large
@@ -57,9 +65,16 @@ def calculate_assignments_sparse(topics, data, voc_size, iterations = 1000, thre
             assignments[i,:] is the proportions of each topic in document i where topics with low probability are removed
     """        
     #calulate block size
-    Ndocs_batch = (50000*10000) / voc_size #fits in 4GB of memory
+    Ndocs_batch = (50000*10000) // voc_size #fits in 4GB of memory
     
-    for i in range(len(data) / Ndocs_batch+1):
+    Nbatches = len(data) // Ndocs_batch
+    if Nbatches*Ndocs_batch < len(data):
+        Nbatches += 1
+    
+    start_time = time()
+    for i in range(Nbatches):
+        
+        
         partial_assignments = calculate_assignments(topics, data[i*Ndocs_batch:(i+1)*Ndocs_batch], voc_size, iterations)
         partial_assignments[partial_assignments < threshold] = 0 
         #re-normalize
@@ -70,12 +85,9 @@ def calculate_assignments_sparse(topics, data, voc_size, iterations = 1000, thre
         else: 
             sparse_assignments = _csr_vappend(sparse_assignments, csr_matrix(partial_assignments))
     
+
+        print('Done batch {} out of {}. Elapsed {:.2f} min.'.format(i,Nbatches,   (time()-start_time)/60  ))
+    
     return sparse_assignments
         
 
-def _csr_vappend(a,b):
-    a.data = np.hstack((a.data,b.data))
-    a.indices = np.hstack((a.indices,b.indices))
-    a.indptr = np.hstack((a.indptr,(b.indptr + a.nnz)[1:]))
-    a._shape = (a.shape[0]+b.shape[0],b.shape[1])
-    return a
