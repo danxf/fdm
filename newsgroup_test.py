@@ -6,7 +6,7 @@ https://scikit-learn.org/stable/auto_examples/applications/plot_topics_extractio
 """
 
 import numpy as np
-import cPickle as pkl
+import pickle as pkl
 from FDM import FDM
 
 
@@ -22,7 +22,8 @@ if __name__ == '__main__':
                                     max_features = voc_size,
                                     stop_words='english')
     features = tf_vectorizer.fit_transform(newsgroups_data)
-    dictionary = dict([(j,i) for (i,j) in tf_vectorizer.vocabulary_.iteritems()])
+    #dictionary = dict([(j,i) for (i,j) in tf_vectorizer.vocabulary_.iteritems()])
+    dictionary = dict([(j,i) for (i,j) in tf_vectorizer.vocabulary_.items()])
     
     
     print('Dictionary size: {}, n_samples: {}'.format(len(dictionary),features.shape[0]))
@@ -36,16 +37,33 @@ if __name__ == '__main__':
     #removing 0-length documents
     corpus = [d for d in corpus if len(d)>0]
 
-    print('Building Matrix...')    
-    #use the static method to convert from list of lists to the second moment matrix of the corpus
-    data_matrix = FDM.build_data_matrix(corpus, voc_size)
+
     
 
+
+    print('Building Matrix...')    
+    #use the static method to convert from list of lists to the second moment matrix of the corpus
+    #data_matrix = FDM.build_data_matrix(corpus, voc_size)
+    data_matrix = FDM.build_data_matrix(synthetic_corp,voc_size, method = FDM.MOMENT_COMPUTE_SPARSE_C)
+    
+
+
+
+    Ntopics = 20
+
+    print('Initializing topics....')
+    init_topics = FDM.topic_data_init(corpus, Ntopics, len(dictionary))
+
+    
     print('Training model...')
     #training an FDM model
-    Ntopics = 10
+
     fdm = FDM(Ntopics, data_matrix)
-    fdm.fit(num_iterations = 30000)
+    fdm.fit(num_iterations = 30000, init_topics = init_topics)
+    #fdm.fit(num_iterations = 30000, init_topics = init_topics,uniform_is_coef = .5)
     
     
     fdm.print_all_topics(dictionary)
+
+
+

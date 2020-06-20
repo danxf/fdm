@@ -1,0 +1,15 @@
+from distutils.core import setup
+from distutils.extension import Extension
+from Cython.Distutils import build_ext
+import numpy
+
+ext_modules = [Extension("_fast_moment", ["_fast_moment.pyx"],include_dirs=[numpy.get_include()]),
+		]
+setup(
+	name = "fast_moment zzzz",
+	cmdclass = {"build_ext": build_ext},
+	ext_modules = ext_modules
+)
+
+
+
